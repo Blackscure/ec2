@@ -1,10 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import axios from 'axios';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import 'react-toastify/dist/ReactToastify.css';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 
 import { Box } from '@mui/material';
 import Link from '@mui/material/Link';
@@ -25,11 +26,19 @@ import { bgGradient } from 'src/theme/css';
 import Logo from 'src/components/logo';
 import Iconify from 'src/components/iconify';
 
-import { auth, firestore } from '../../firebase/firebase';
+const toastConfig = {
+  position: 'top-right',
+  autoClose: 5000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+};
 
-
-
-
+const notify = (message, type) => {
+  toast[type](message, toastConfig);
+};
 
 const validationSchema = Yup.object({
   email: Yup.string().email('Invalid email address').required('Required'),
@@ -44,11 +53,10 @@ export default function RegisterView() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-
   const formik = useFormik({
     initialValues: {
       email: '',
-      is_admin: false,
+      is_admin: 'True',
       first_name: '',
       last_name: '',
       password: '',
@@ -56,22 +64,18 @@ export default function RegisterView() {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        // Create user in Firebase Authentication
-        const { user } = await auth.createUserWithEmailAndPassword(values.email, values.password);
-
-        // Add additional user data to Firestore
-        await firestore.collection('users').doc(user.uid).set({
-          is_admin: values.is_admin,
-          first_name: values.first_name,
-          last_name: values.last_name,
-          email: values.email,
-        });
-
-        console.log('User registered successfully!');
+        const response = await axios.post('http://localhost:8000/apps/api/v1/authentication/register/', values);
+        console.log('Registration successful:', response.data);
+    
+        toast(response.data.message, 'success'); // Use the message from the API response
+        router.push('/login'); // Redirect to the dashboard or login page
       } catch (error) {
-        console.error('Error registering user:', error);
+        console.error('Registration failed:', error);
+    
+        notify('Registration failed. Please check your details and try again.', 'error');
       }
     },
+    
   });
 
   return (
