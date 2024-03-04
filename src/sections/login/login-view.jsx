@@ -1,8 +1,9 @@
+import axios from 'axios';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
+import { toast , ToastContainer } from 'react-toastify';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -23,7 +24,18 @@ import { bgGradient } from 'src/theme/css';
 import Logo from 'src/components/logo';
 import Iconify from 'src/components/iconify';
 
-import { auth } from '../../firebase/firebase';
+
+
+const toastConfig = {
+  position: 'top-right',
+  autoClose: 5000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+};
+
 
 export default function LoginView() {
   const theme = useTheme();
@@ -41,14 +53,28 @@ export default function LoginView() {
       password: '',
     },
     validationSchema,
-    onSubmit: async (values) => {
+      onSubmit: async (values) => {
       try {
-        // Log in user using Firebase Authentication
-        await auth.signInWithEmailAndPassword(values.email, values.password);
+        // Make a request to your login endpoint to get the authentication token
+        const response = await axios.post('http://localhost:8000/apps/ec1/api/v1/authentication/login/', values);
 
-        console.log('User logged in successfully!');
+        if (response.data.status) {
+          // Successful login
+          const authToken = response.data.data.token; // Adjust the property based on your API response
+
+          // Save the authentication token in local storage
+          localStorage.setItem('authToken', authToken);
+
+          // Redirect to the desired page
+          router.push('/'); // Change '/dashboard' to your desired route
+        } else {
+          // Login failed
+          toast.success(response.data.message, toastConfig);
+        }
       } catch (error) {
         console.error('Error logging in:', error);
+        // Handle error, show a message, or redirect as needed
+        toast.error('An error occurred during login. Please try again later.', toastConfig);
       }
     },
   });
