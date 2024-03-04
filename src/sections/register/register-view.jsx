@@ -26,6 +26,8 @@ import { bgGradient } from 'src/theme/css';
 import Logo from 'src/components/logo';
 import Iconify from 'src/components/iconify';
 
+
+
 const toastConfig = {
   position: 'top-right',
   autoClose: 5000,
@@ -64,15 +66,19 @@ export default function RegisterView() {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await axios.post('http://localhost:8000/apps/api/v1/authentication/register/', values);
-        console.log('Registration successful:', response.data);
-    
-        toast(response.data.message, 'success'); // Use the message from the API response
-        router.push('/login'); // Redirect to the dashboard or login page
+        const response = await axios.post('http://localhost:8000/apps/ec1/api/v1/authentication/register/', values);
+
+        if (response.data.status) {
+          // Registration successful
+          toast.success(response.data.message, toastConfig);
+          router.push('/login'); // Redirect to the login page
+        } else {
+          // Registration failed
+          notify('Registration failed. Please check your details and try again.', 'error');
+        }
       } catch (error) {
         console.error('Registration failed:', error);
-    
-        notify('Registration failed. Please check your details and try again.', 'error');
+        notify('An error occurred during registration. Please try again later.', 'error');
       }
     },
     
