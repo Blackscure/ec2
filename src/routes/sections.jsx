@@ -1,18 +1,12 @@
-import { lazy, Suspense} from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Outlet, Navigate, useRoutes } from 'react-router-dom';
 
 import DashboardLayout from 'src/layouts/dashboard';
 
-// import ProtectedRoute from '../components/protected/protected'; 
-
-
-
 export const IndexPage = lazy(() => import('src/pages/app'));
-export const RegisterPage = lazy(() => import('src/pages/register'));
-export const LoginPage = lazy(() => import('src/pages/login'));
 export const UserPage = lazy(() => import('src/pages/user'));
-
-
+export const LoginPage = lazy(() => import('src/pages/login'));
+export const RegisterPage = lazy(() => import('src/pages/register'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 // ----------------------------------------------------------------------
@@ -29,29 +23,21 @@ export default function Router() {
       ),
       children: [
         { element: <IndexPage />, index: true },
-
-        // Protected Routes
-        // { path: 'admin', element: <ProtectedRoute component={AdminPage} role="admin" /> },
-        // { path: 'user', element: <ProtectedRoute component={UserPage} role="user" /> },
-        
         { path: 'user', element: <UserPage /> },
       
+
+        
       ],
     },
-
+    {
+      path: 'login',
+      element: <LoginPage />,
+    },
     {
       path: 'register',
       element: <RegisterPage />,
     },
 
-    {
-      path: 'login',
-      element: <LoginPage />,
-    },
-
-
-
-   
    
     {
       path: '404',
@@ -67,7 +53,13 @@ export default function Router() {
     },
   ]);
 
-
+  // Automatically redirect to login on the initial load
+  useEffect(() => {
+    if (window.location.pathname === '/') {
+      // Redirect only if the path is the root
+      window.location.replace('/login');
+    }
+  }, []);
 
   return routes;
 }
